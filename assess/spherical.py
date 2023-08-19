@@ -1,14 +1,14 @@
 """Analytical solutions in spherical shell domains."""
 from __future__ import division
 from assess.cylindrical import AnalyticalStokesSolution
-from assess.smooth import coefficients_sphere_smooth_fs, coefficients_sphere_smooth_ns
-from assess.delta import coefficients_sphere_delta_fs, coefficients_sphere_delta_ns
+from assess.smooth import coefficients_sphere_smooth_fs, coefficients_sphere_smooth_ns, coefficients_sphere_smooth_nsfs
+from assess.delta import coefficients_sphere_delta_fs, coefficients_sphere_delta_ns, coefficients_sphere_delta_nsfs
 import scipy.special
 import numpy
 from math import sqrt, atan2, cos, sin, tan, acos, pi
 
-__all__ = ['SphericalStokesSolutionSmoothFreeSlip', 'SphericalStokesSolutionSmoothZeroSlip',
-           'SphericalStokesSolutionDeltaFreeSlip', 'SphericalStokesSolutionDeltaZeroSlip',
+__all__ = ['SphericalStokesSolutionSmoothFreeSlip', 'SphericalStokesSolutionSmoothZeroSlip', 'SphericalStokesSolutionSmoothFreeZeroSlip',
+           'SphericalStokesSolutionDeltaFreeSlip', 'SphericalStokesSolutionDeltaZeroSlip', 'SphericalStokesSolutionDeltaFreeZeroSlip',
            'Y', 'dYdphi', 'dYdtheta', 'Y_cartesian', 'to_spherical', 'from_spherical']
 
 
@@ -469,3 +469,33 @@ class SphericalStokesSolutionDeltaZeroSlip(SphericalStokesSolutionDelta):
         :param g: forcing strength"""
         ABCD = coefficients_sphere_delta_ns(Rp, Rm, rp, l, g, nu, sign)
         super(SphericalStokesSolutionDeltaZeroSlip, self).__init__(ABCD, l, m, Rp=Rp, Rm=Rm, nu=nu, g=g)
+
+
+class SphericalStokesSolutionSmoothFreeZeroSlip(SphericalStokesSolutionSmooth):
+    """Analytical Solution in cylindrical domain with smooth r^k forcing and zero-slip boundary conditions"""
+    def __init__(self, l, m, k, Rp=2.22, Rm=1.22, nu=1.0, g=1.0):
+        """:param l: degree of the harmonic
+        :param m: order of the harmonic
+        :param k: polynomial order of forcing
+        :param Rp: outer radius
+        :param Rm: inner radius
+        :param nu: viscosity
+        :param g: forcing strength"""
+        if (k+1)*(k+2) == l*(l+1) or (k+3)*(k+4) == l*(l+1):
+            raise NotImplementedError("Smooth solution not implemented for k={}, l={}".format(k, l))
+        ABCDE = coefficients_sphere_smooth_nsfs(Rp, Rm, k, l, g, nu)
+        super(SphericalStokesSolutionSmoothFreeZeroSlip, self).__init__(ABCDE, k, l, m, Rp=Rp, Rm=Rm, nu=nu, g=g)
+
+class SphericalStokesSolutionDeltaFreeZeroSlip(SphericalStokesSolutionDelta):
+    """Analytical Solution in cylindrical domain with delta(r-r') forcing and free-slip boundary conditions"""
+    def __init__(self, l, m, sign, Rp=2.22, Rm=1.22, rp=1.72, nu=1.0, g=1.0):
+        r""":param l: degree of the harmonic
+        :param m: order of the harmonic
+        :param sign: +1 for upper half solution r'<r<Rp
+                     -1 for lower half solution Rm<r<r'
+        :param Rp: outer radius
+        :param Rm: inner radius
+        :param nu: viscosity
+        :param g: forcing strength"""
+        ABCD = coefficients_sphere_delta_nsfs(Rp, Rm, rp, l, g, nu, sign)
+        super(SphericalStokesSolutionDeltaFreeZeroSlip, self).__init__(ABCD, l, m, Rp=Rp, Rm=Rm, nu=nu, g=g)

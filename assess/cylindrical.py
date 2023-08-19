@@ -1,12 +1,12 @@
 """Analytical solutions in cylindrical domains."""
 from __future__ import division
-from assess.smooth import coefficients_cylinder_smooth_fs, coefficients_cylinder_smooth_ns
-from assess.delta import coefficients_cylinder_delta_fs, coefficients_cylinder_delta_ns
+from assess.smooth import coefficients_cylinder_smooth_fs, coefficients_cylinder_smooth_ns, coefficients_cylinder_smooth_nsfs
+from assess.delta import coefficients_cylinder_delta_fs, coefficients_cylinder_delta_ns, coefficients_cylinder_delta_nsfs
 from math import sqrt, atan2, cos, sin
 
 
-__all__ = ['CylindricalStokesSolutionSmoothFreeSlip', 'CylindricalStokesSolutionSmoothZeroSlip',
-           'CylindricalStokesSolutionDeltaFreeSlip', 'CylindricalStokesSolutionDeltaZeroSlip']
+__all__ = ['CylindricalStokesSolutionSmoothFreeSlip', 'CylindricalStokesSolutionSmoothZeroSlip', 'CylindricalStokesSolutionSmoothFreeZeroSlip',
+           'CylindricalStokesSolutionDeltaFreeSlip', 'CylindricalStokesSolutionDeltaZeroSlip', 'CylindricalStokesSolutionDeltaFreeZeroSlip']
 
 
 class AnalyticalStokesSolution(object):
@@ -318,3 +318,30 @@ class CylindricalStokesSolutionDeltaZeroSlip(CylindricalStokesSolutionDelta):
         :param g: forcing strength"""
         ABCD = coefficients_cylinder_delta_ns(Rp, Rm, rp, n, g, nu, sign)
         super(CylindricalStokesSolutionDeltaZeroSlip, self).__init__(ABCD, n, Rp=Rp, Rm=Rm, nu=nu, g=g)
+
+class CylindricalStokesSolutionSmoothFreeZeroSlip(CylindricalStokesSolutionSmooth):
+    """Analytical Solution in cylindrical domain with smooth r^k forcing and zero-slip boundary conditions"""
+    def __init__(self, n, k, Rp=2.22, Rm=1.22, nu=1.0, g=1.0):
+        """:param n: wave number
+        :param k: polynomial order of forcing
+        :param Rp: outer radius
+        :param Rm: inner radius
+        :param nu: viscosity
+        :param g: forcing strength"""
+        if abs(k+3) == n or abs(k+1) == n:
+            raise NotImplementedError("Smooth solution not implemented for k={}, n={}".format(k, n))
+        ABCDE = coefficients_cylinder_smooth_nsfs(Rp, Rm, k, n, g, nu)
+        super(CylindricalStokesSolutionSmoothFreeZeroSlip, self).__init__(ABCDE, k, n, Rp=Rp, Rm=Rm, nu=nu, g=g)
+
+class CylindricalStokesSolutionDeltaFreeZeroSlip(CylindricalStokesSolutionDelta):
+    """Analytical Solution in cylindrical domain with delta(r-r') forcing and zero-slip boundary conditions"""
+    def __init__(self, n, sign, Rp=2.22, Rm=1.22, rp=1.72, nu=1.0, g=1.0):
+        r""":param n: wave number
+        :param sign: +1 for upper half solution r'<r<Rp
+                     -1 for lower half solution Rm<r<r'
+        :param Rp: outer radius
+        :param Rm: inner radius
+        :param nu: viscosity
+        :param g: forcing strength"""
+        ABCD = coefficients_cylinder_delta_nsfs(Rp, Rm, rp, n, g, nu, sign)
+        super(CylindricalStokesSolutionDeltaFreeZeroSlip, self).__init__(ABCD, n, Rp=Rp, Rm=Rm, nu=nu, g=g)
